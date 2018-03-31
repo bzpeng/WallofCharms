@@ -1,0 +1,4 @@
+<hr>
+<div class="pagination">
+  {{ paginate | default_pagination | replace: '&laquo; Previous', '<i class="fa fa-angle-left"></i>' | replace: 'Next &raquo;', '<i class="fa fa-angle-right"></i>' }}
+</div>

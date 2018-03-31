@@ -1,0 +1,56 @@
+{% if swatch == blank %}
+	<div class="swatch error">
+		<p>You must include the snippet swatch.liquid with the name of a product option.</p> 
+		<p>Use: <code>{% raw %}{% include 'swatch' with 'name of your product option here' %}{% endraw %}</code></p>
+		<p>Example: <code>{% raw %}{% include 'swatch' with 'Color' %}{% endraw %}</code></p>
+ 	</div>
+{% else %}
+
+	{% assign found_option = false %}
+	{% assign is_color = false %}
+	{% assign option_index = 0 %}
+
+	{% for option in product.options %}
+		{% if option == swatch %}
+			{% assign found_option = true %}
+			{% assign option_index = forloop.index0 %}
+			{% assign downcased_option = swatch | downcase %}
+			{% if downcased_option contains 'color' or downcased_option contains 'colour' %}
+				{% assign is_color = true %}
+			{% endif %}
+		{% endif %}
+	{% endfor %}
+
+	{% unless found_option %}
+		<div class="swatch error">
+			<p>You included the snippet swatch.liquid with the name of a product option — <code>'{{ swatch }}'</code> — that does not belong to your product.</p>
+			<p>Use <code>{% raw %}{% include 'swatch' with 'name of your product option here' %}{% endraw %}</code></p>
+			<p>Example: <code>{% raw %}{% include 'swatch' with 'Color' %}{% endraw %}</code></p>
+			<p><strong>This is case-sensitive!</strong> Do not put in <code>'color'</code> if your product option name is <code>'Color'</code>.</p>
+		</div>
+	{% else %}
+		<div class="swatch" data-option-index="{{ option_index }}">
+			<h4 class="swatch__title upc">{{ swatch }}</h4>
+			<div class="swatch__value is-flex">
+				{% assign values = '' %}
+				{% for variant in product.variants %}
+					{% assign value = variant.options[option_index] %}
+					{% unless values contains value %}
+						{% assign values = values | join: ',' %}
+						{% assign values = values | append: ',' | append: value %}
+						{% assign values = values | split: ',' %}
+						<div data-value="{{ value | escape }}" class="swatch__item is-relative {% if is_color %}color {% endif %}{{ value | handle }} {% if variant.available %}available{% else %}sold--out{% endif %}">
+							<span class="tooltip is-absolute">{{ value }}</span>
+							<input id="swatch-{{ option_index }}-{{ value | handle }}" type="radio" name="option-{{ option_index }}" value="{{ value | escape }}"{% if forloop.first %} checked{% endif %} {% unless variant.available %}disabled{% endunless %} />
+							{% if is_color %}
+								<label for="swatch-{{ option_index }}-{{ value | handle }}" style="background-color: {{ value | split: ' ' | last | handle }};"></label>
+							{% else %}
+								<label for="swatch-{{ option_index }}-{{ value | handle }}">{{ value }}</label>
+							{% endif %}
+						</div>
+					{% endunless %}
+				{% endfor %}
+			</div>
+		</div>
+	{% endunless %}
+{% endif %}
